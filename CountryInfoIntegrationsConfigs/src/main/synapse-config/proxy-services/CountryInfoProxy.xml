@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy name="CountryInfoService" startOnLoad="true" transports="http https" xmlns="http://ws.apache.org/ns/synapse">
+    <target>
+        <inSequence>
+            <property name="FORCE_SOAP_ACTION" scope="default" type="STRING" value="true"/>
+            <property expression="get-property('transport', 'SOAPAction')" name="SOAPAction" scope="default" type="STRING"/>
+            <property action="remove" name="REST_URL_POSTFIX" scope="axis2"/>
+            <log level="custom">
+                <property name="DEBUG" value="Received SOAP Request"/>
+                <property expression="get-property('SOAPAction')" name="SOAP_Action"/>
+            </log>
+            <enrich>
+                <source clone="true" type="envelope"/>
+                <target property="ORIGINAL_PAYLOAD" type="property"/>
+            </enrich>
+            <send>
+                <endpoint>
+                    <address format="soap11" uri="http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso">
+                        <timeout>
+                            <duration>60000</duration>
+                            <responseAction>fault</responseAction>
+                        </timeout>
+                        <suspendOnFailure>
+                            <initialDuration>-1</initialDuration>
+                            <progressionFactor>1</progressionFactor>
+                        </suspendOnFailure>
+                        <markForSuspension>
+                            <retriesBeforeSuspension>0</retriesBeforeSuspension>
+                        </markForSuspension>
+                    </address>
+                </endpoint>
+            </send>
+        </inSequence>
+        <outSequence>
+            <send/>
+        </outSequence>
+        <faultSequence>
+            <drop/>
+        </faultSequence>
+    </target>
+    <enableSec/>
+</proxy>
